@@ -12,3 +12,6 @@
 
 ## Technologies
 - **Backend**: Django, Django REST framework, PostgreSQL, Redis
+
+
+### want to add a simple bot for the facebook group, where every time a new post is made, it will be posted to the group, also can do announcements, and other stuffs.

@@ -1,0 +1,66 @@
+# docker-compose.yml
+version: '3.10'
+
+services:
+  db:
+    image: postgres:latest
+    container_name: edtech-saas-db
+    environment:
+      POSTGRES_USER: edtech-saas-dev-db-user
+      POSTGRES_PASSWORD: edtech-saas-dev-db-pass
+      POSTGRES_DB: edtech-saas-dev-db
+    volumes:
+      - ./db/data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  backend:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: edtech-saas-backend
+    environment:
+      DJANGO_SETTINGS_MODULE: core.settings
+
+      DB_HOST: db
+      DB_NAME: edtech-saas-dev-db
+      DB_USER: edtech-saas-dev-db-user
+      DB_PASSWORD: edtech-saas-dev-db-pass
+
+
+
+    command: bash -c "./run.sh"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app:/app
+
+
+  redis:
+    image: "redis:latest"
+    ports:
+      - "6379:6379"
+
+  celery:
+    restart: always
+    build:
+      context: ./app
+    command: bash -c "celery -A core worker -l info"
+    volumes:
+      - ./app:/app
+    environment:
+      DJANGO_SETTINGS_MODULE: core.settings
+
+      DB_HOST: db
+      DB_NAME: edtech-saas-dev-db
+      DB_USER: edtech-saas-dev-db-user
+      DB_PASSWORD: edtech-saas-dev-db-pass
+
+    depends_on:
+      - backend
+      - redis
+      - db
+  
+networks:
+  default:
+    name: edtech-saas-network
